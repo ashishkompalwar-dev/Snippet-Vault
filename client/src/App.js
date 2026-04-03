@@ -1,6 +1,8 @@
 import "./App.css";
 import React, { useEffect, useState } from "react";
 
+const BASE_URL = "https://snippet-vault-backend.onrender.com";
+
 function App() {
   const [snippets, setSnippets] = useState([]);
   const [editId, setEditId] = useState(null);
@@ -11,7 +13,7 @@ function App() {
 
   // FETCH SNIPPETS
   useEffect(() => {
-    fetch("https://snippet-vault-backend.onrender.com/snippets")
+    fetch(`${BASE_URL}/snippets`)
       .then((res) => res.json())
       .then((data) => setSnippets(data))
       .catch((err) => console.log(err));
@@ -19,6 +21,8 @@ function App() {
 
   // ADD / UPDATE
   const addSnippet = async () => {
+    console.log("Clicked Add Snippet");
+
     try {
       if (!title || !code || !language) {
         alert("Fill all fields!");
@@ -27,14 +31,14 @@ function App() {
 
       if (editId) {
         // UPDATE
-        await fetch(`https://snippet-vault-backend.onrender.com/snippets/${editId}`, {
+        await fetch(`${BASE_URL}/snippets/${editId}`, {
           method: "PUT",
           headers: { "Content-Type": "application/json" },
           body: JSON.stringify({ title, code, language }),
         });
 
-        setSnippets(
-          snippets.map((s) =>
+        setSnippets((prev) =>
+          prev.map((s) =>
             s._id === editId ? { ...s, title, code, language } : s
           )
         );
@@ -42,32 +46,36 @@ function App() {
         setEditId(null);
       } else {
         // CREATE
-        const res = await fetch("https://snippet-vault-backend.onrender.com/snippets", {
+        const res = await fetch(`${BASE_URL}/snippets`, {
           method: "POST",
           headers: { "Content-Type": "application/json" },
           body: JSON.stringify({ title, code, language }),
         });
 
         const data = await res.json();
-        setSnippets([...snippets, data.snippet]);
+        console.log("Response data:", data);
+
+        // ✅ FIXED LINE
+        setSnippets((prev) => [...prev, data]);
       }
 
+      // CLEAR INPUTS
       setTitle("");
       setCode("");
       setLanguage("");
     } catch (err) {
-      console.log(err);
+      console.log("Error:", err);
     }
   };
 
   // DELETE
   const deleteSnippet = async (id) => {
     try {
-      await fetch(`https://snippet-vault-backend.onrender.com/snippets/${id}`, {
+      await fetch(`${BASE_URL}/snippets/${id}`, {
         method: "DELETE",
       });
 
-      setSnippets(snippets.filter((s) => s._id !== id));
+      setSnippets((prev) => prev.filter((s) => s._id !== id));
     } catch (err) {
       console.log(err);
     }
@@ -121,9 +129,9 @@ function App() {
         <div key={snippet._id} className="card">
           <h3>{snippet.title}</h3>
 
-         <pre className="code">
+          <pre className="code">
             <code>{snippet.code}</code>
-            </pre>
+          </pre>
 
           <p className="lang">{snippet.language}</p>
 
