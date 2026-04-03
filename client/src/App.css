@@ -1,0 +1,229 @@
+/* RESET */
+* {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+  transition: all 0.3s ease;
+}
+
+/* BODY */
+body {
+  font-family: "Poppins", sans-serif;
+  background: linear-gradient(135deg, #667eea, #764ba2);
+  min-height: 100vh;
+}
+
+/* 🌌 ANIMATED BACKGROUND */
+body::before {
+  content: "";
+  position: fixed;
+  inset: 0;
+  z-index: -1;
+  background: radial-gradient(800px 400px at 10% 10%, rgba(0, 234, 255, 0.15), transparent 60%),
+              radial-gradient(700px 350px at 90% 20%, rgba(255, 75, 108, 0.12), transparent 60%),
+              radial-gradient(900px 500px at 50% 100%, rgba(0, 198, 255, 0.12), transparent 60%);
+  filter: blur(20px);
+  animation: bgMove 12s ease-in-out infinite alternate;
+}
+
+@keyframes bgMove {
+  0% { transform: translateY(0) scale(1); }
+  100% { transform: translateY(-20px) scale(1.05); }
+}
+
+/* CONTAINER */
+.container {
+  max-width: 900px;
+  margin: auto;
+  padding: 30px;
+  animation: fadeIn 0.8s ease;
+}
+
+@keyframes fadeIn {
+  from { opacity: 0; transform: translateY(15px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+/* HEADER */
+.header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 25px;
+}
+
+h1 {
+  color: white;
+}
+
+/* BUTTONS */
+button {
+  padding: 10px;
+  border-radius: 8px;
+  border: none;
+  cursor: pointer;
+}
+
+button:active {
+  transform: scale(0.95);
+}
+
+.toggle-btn {
+  background: #222;
+  color: white;
+}
+
+.add-btn {
+  background: linear-gradient(135deg, #00c6ff, #0072ff);
+  color: white;
+}
+
+.delete {
+  background: crimson;
+  margin-left: 10px;
+}
+
+/* FORM */
+.form {
+  display: flex;
+  gap: 10px;
+  margin-bottom: 30px;
+  background: rgba(255, 255, 255, 0.15);
+  padding: 15px;
+  border-radius: 15px;
+  backdrop-filter: blur(10px);
+}
+
+/* INPUT */
+input {
+  padding: 10px;
+  border-radius: 8px;
+  border: none;
+  width: 25%;
+}
+
+input:focus {
+  box-shadow: 0 0 10px rgba(0, 234, 255, 0.7);
+  transform: scale(1.03);
+}
+
+/* CARD */
+.card {
+  background: rgba(255, 255, 255, 0.15);
+  padding: 18px;
+  margin-top: 18px;
+  border-radius: 15px;
+  backdrop-filter: blur(10px);
+  color: white;
+  animation: popIn 0.4s ease;
+}
+
+.card:hover {
+  transform: translateY(-8px) scale(1.02);
+}
+
+@keyframes popIn {
+  from {
+    opacity: 0;
+    transform: scale(0.9) translateY(10px);
+  }
+  to {
+    opacity: 1;
+    transform: scale(1) translateY(0);
+  }
+}
+
+/* CODE */
+.code {
+  font-family: "Fira Code", monospace;
+  background: rgba(0, 0, 0, 0.35);
+  padding: 12px;
+  border-radius: 10px;
+  margin-top: 8px;
+
+  white-space: pre-wrap;
+  word-break: break-word;
+  overflow-x: auto;
+
+  line-height: 1.5;
+  font-size: 14px;
+}
+
+/* LANGUAGE */
+.lang {
+  margin-top: 8px;
+  opacity: 0.8;
+}
+
+/* EMPTY */
+.empty {
+  color: white;
+  text-align: center;
+  margin-top: 20px;
+}
+
+/* 🌙 DARK MODE */
+body.dark {
+  background: radial-gradient(circle at top, #0f2027, #203a43, #2c5364);
+  color: #eaeaea;
+}
+
+/* TITLE GLOW */
+body.dark h1 {
+  color: #00eaff;
+  animation: glow 2s ease-in-out infinite alternate;
+}
+
+@keyframes glow {
+  from {
+    text-shadow: 0 0 8px #00eaff;
+  }
+  to {
+    text-shadow: 0 0 20px #00eaff, 0 0 30px #00eaff;
+  }
+}
+
+/* FORM DARK */
+body.dark .form {
+  background: rgba(255, 255, 255, 0.05);
+  backdrop-filter: blur(15px);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+/* CARD DARK */
+body.dark .card {
+  background: rgba(255, 255, 255, 0.06);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  box-shadow: 0 8px 40px rgba(0, 0, 0, 0.6);
+}
+
+body.dark .card:hover {
+  box-shadow: 0 0 20px #00eaff;
+}
+
+/* INPUT DARK */
+body.dark input {
+  background: rgba(255, 255, 255, 0.08);
+  color: white;
+  border: 1px solid #555;
+}
+
+/* CODE DARK */
+body.dark .code {
+  background: #0d1117;
+  color: #00ffcc;
+  border-left: 4px solid #00ffcc;
+}
+
+/* BUTTON DARK */
+body.dark .add-btn {
+  background: linear-gradient(135deg, #00c6ff, #0072ff);
+}
+
+body.dark button:hover {
+  box-shadow: 0 0 15px #00c6ff;
+}
+
+body.dark .delete {
+  background: linear-gradient(135deg, #ff416c, #ff4b2b);
+}
