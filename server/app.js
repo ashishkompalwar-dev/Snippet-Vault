@@ -1,3 +1,4 @@
+require('dns').setDefaultResultOrder('ipv4first');
 const cors = require('cors');
 const express = require('express');
 require("dotenv").config();
@@ -11,10 +12,7 @@ const app = express();
 
 // Middleware
 app.use(express.json());
-app.use(cors({
-    origin:
-    "https://69cbf3603b56b01c1c2a69fb--incomparable-unicorn-65b871.netlify.app/"
-}));
+app.use(cors());
 
 // ---------------- DB CONNECTION FIRST ----------------
 
