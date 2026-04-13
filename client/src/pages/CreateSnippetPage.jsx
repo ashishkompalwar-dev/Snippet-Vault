@@ -15,9 +15,9 @@ function CreateSnippetPage({
     return (
       <section className="page">
         <div className="panelish">
-          <h2>Create snippet</h2>
+          <h2>Create note</h2>
           <p className="hint">
-            Sign in is optional, but required before creating a snippet.
+            Sign in is optional for browsing, but required before creating a note.
           </p>
           <Link to="/login" className="primary link-btn">
             Go to login
@@ -30,7 +30,7 @@ function CreateSnippetPage({
   return (
     <section className="page">
       <div className="section-head">
-        <h2>Create snippet</h2>
+        <h2>Create note</h2>
       </div>
 
       <form
@@ -48,7 +48,7 @@ function CreateSnippetPage({
           onChange={(event) => setTitle(event.target.value)}
         />
 
-        <label htmlFor="content">Snippet text</label>
+        <label htmlFor="content">Note text</label>
         <textarea
           id="content"
           placeholder="Write plain text notes or code snippets"
@@ -58,7 +58,7 @@ function CreateSnippetPage({
         />
 
         <button className="primary" type="submit" disabled={saveLoading}>
-          {saveLoading ? "Saving..." : "Save snippet"}
+          {saveLoading ? "Saving..." : "Save note"}
         </button>
       </form>
 

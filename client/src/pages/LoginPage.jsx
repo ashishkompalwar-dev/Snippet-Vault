@@ -19,7 +19,7 @@ function LoginPage({
   return (
     <section className="page">
       <div className="section-head">
-        <h2>Login and signup</h2>
+        <h2>Sign in or create account</h2>
       </div>
 
       {user ? (

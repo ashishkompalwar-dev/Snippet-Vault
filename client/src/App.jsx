@@ -119,7 +119,7 @@ function AppShell() {
       const newSnippet = data && data.snippet ? data.snippet : data;
       setSnippets((prev) => [newSnippet, ...prev]);
       clearCreateForm();
-      setCreateMessage("Snippet saved.");
+      setCreateMessage("Note saved.");
       navigate("/home");
     } catch (error) {
       setCreateMessage(getErrorMessage(error, "Failed to create snippet."));
@@ -185,6 +185,7 @@ function AppShell() {
     setAuthPassword("");
     setAuthMessage("You are now in guest mode.");
     setCreateMessage("");
+    navigate("/home");
   };
 
   const deleteSnippet = async (id) => {
@@ -193,8 +194,14 @@ function AppShell() {
       return;
     }
 
+    if (!token) {
+      window.alert("Please sign in to delete notes.");
+      navigate("/login");
+      return;
+    }
+
     try {
-      await requestJson(`/snippets/${id}`, { method: "DELETE" });
+      await requestJson(`/snippets/${id}`, { method: "DELETE", token });
       setSnippets((prev) => prev.filter((snippet) => snippet._id !== id));
     } catch (error) {
       window.alert(getErrorMessage(error, "Failed to delete snippet."));
@@ -212,7 +219,7 @@ function AppShell() {
         <div>
           <p className="eyebrow">Knowledge keeper</p>
           <h1>Snippet Vault</h1>
-          <p className="hero-sub">Store simple text snippets in one clean place.</p>
+          <p className="hero-sub">Save your quick notes as lightweight snippets.</p>
         </div>
 
         <div className="hero-right">
