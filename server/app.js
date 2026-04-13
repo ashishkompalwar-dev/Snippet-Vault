@@ -16,6 +16,7 @@ const JWT_SECRET = process.env.JWT_SECRET || "dev-only-secret";
 // Middleware
 app.use(express.json());
 app.use(cors());
+app.disable('x-powered-by');
 
 function createToken(userId) {
     return jwt.sign({ userId }, JWT_SECRET, { expiresIn: '7d' });
@@ -46,6 +47,8 @@ function requireAuth(req, res, next) {
     }
 }
 
+const api = express.Router();
+
 // ---------------- DB CONNECTION FIRST ----------------
 
 mongoose.connect(process.env.MONGO_URI)
@@ -54,7 +57,7 @@ mongoose.connect(process.env.MONGO_URI)
 // ---------------- ROUTES ----------------
 
 // Signup
-app.post('/signup', async (req, res) => {
+api.post('/auth/signup', async (req, res) => {
     const { name, email, password } = req.body;
 
     if (!name || !email || !password) {
@@ -88,7 +91,7 @@ app.post('/signup', async (req, res) => {
 });
 
 // Login
-app.post('/login', async (req, res) => {
+api.post('/auth/login', async (req, res) => {
     const { email, password } = req.body;
 
     if (!email || !password) {
@@ -116,7 +119,7 @@ app.post('/login', async (req, res) => {
 });
 
 // Get all note snippets
-app.get('/snippets', async (req, res) => {
+api.get('/snippets', async (req, res) => {
     const snippets = await Snippet.find()
         .sort({ createdAt: -1 })
         .populate('owner', 'name email');
@@ -125,7 +128,7 @@ app.get('/snippets', async (req, res) => {
 });
 
 // Create note snippet (auth required)
-app.post('/snippets', requireAuth, async (req, res) => {
+api.post('/snippets', requireAuth, async (req, res) => {
     const { title, content } = req.body;
 
     if (!title || !content) {
@@ -150,7 +153,7 @@ app.post('/snippets', requireAuth, async (req, res) => {
 });
 
 // Delete snippet (owner only)
-app.delete('/snippets/:id', requireAuth, async (req, res) => {
+api.delete('/snippets/:id', requireAuth, async (req, res) => {
     const snippet = await Snippet.findById(req.params.id);
 
     if (!snippet) {
@@ -166,7 +169,7 @@ app.delete('/snippets/:id', requireAuth, async (req, res) => {
 });
 
 // Update snippet (owner only)
-app.put('/snippets/:id', requireAuth, async (req, res) => {
+api.put('/snippets/:id', requireAuth, async (req, res) => {
     const { title, content } = req.body;
 
     const snippet = await Snippet.findById(req.params.id);
@@ -188,9 +191,47 @@ app.put('/snippets/:id', requireAuth, async (req, res) => {
     res.json(snippet);
 });
 
-// Test route
 app.get('/', (req, res) => {
-    res.send('Server is running 🚀');
+    res.json({
+        ok: true,
+        message: 'Snippet Vault API is running.',
+        docs: '/api',
+    });
+});
+
+app.get('/api', (req, res) => {
+    res.json({
+        ok: true,
+        service: 'snippet-vault',
+        routes: {
+            signup: 'POST /api/auth/signup',
+            login: 'POST /api/auth/login',
+            listSnippets: 'GET /api/snippets',
+            createSnippet: 'POST /api/snippets',
+            updateSnippet: 'PUT /api/snippets/:id',
+            deleteSnippet: 'DELETE /api/snippets/:id',
+        },
+    });
+});
+
+app.use('/api', api);
+
+app.use((req, res) => {
+    res.status(404).json({
+        message: 'Route not found.',
+        path: req.originalUrl,
+    });
+});
+
+app.use((error, req, res, next) => {
+    if (error instanceof SyntaxError && error.status === 400 && 'body' in error) {
+        return res.status(400).json({ message: 'Invalid JSON payload.' });
+    }
+
+    const statusCode = error.status || 500;
+    return res.status(statusCode).json({
+        message: statusCode === 500 ? 'Internal server error.' : error.message,
+    });
 });
 
 // ---------------- START SERVER LAST ----------------

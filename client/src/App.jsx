@@ -11,7 +11,14 @@ import {
 import HomePage from "./pages/HomePage";
 import LoginPage from "./pages/LoginPage";
 import CreateSnippetPage from "./pages/CreateSnippetPage";
-import { BASE_URL, requestJson } from "./lib/api";
+import {
+  createSnippet,
+  deleteSnippetById,
+  fetchSnippets,
+  getApiErrorMessage,
+  signIn,
+  signUp,
+} from "./lib/api";
 
 const TOKEN_KEY = "snippetVaultToken";
 const USER_KEY = "snippetVaultUser";
@@ -63,27 +70,15 @@ function AppShell() {
     }
   }, []);
 
-  const getErrorMessage = (error, fallbackMessage) => {
-    if (error instanceof Error) {
-      if (error.message.includes("Failed to fetch")) {
-        return `Cannot reach backend at ${BASE_URL}. Start local server and retry.`;
-      }
-
-      return error.message;
-    }
-
-    return fallbackMessage;
-  };
-
   const loadSnippets = async () => {
     setSnippetsLoading(true);
     setSnippetsError("");
 
     try {
-      const data = await requestJson("/snippets");
+      const data = await fetchSnippets();
       setSnippets(Array.isArray(data) ? data : []);
     } catch (error) {
-      setSnippetsError(getErrorMessage(error, "Unable to load snippets."));
+      setSnippetsError(getApiErrorMessage(error, "Unable to load snippets."));
     } finally {
       setSnippetsLoading(false);
     }
@@ -110,11 +105,7 @@ function AppShell() {
       setSaveLoading(true);
       setCreateMessage("");
 
-      const data = await requestJson("/snippets", {
-        method: "POST",
-        token,
-        body: { title: title.trim(), content: content.trim() },
-      });
+      const data = await createSnippet({ title: title.trim(), content: content.trim() }, token);
 
       const newSnippet = data && data.snippet ? data.snippet : data;
       setSnippets((prev) => [newSnippet, ...prev]);
@@ -122,7 +113,7 @@ function AppShell() {
       setCreateMessage("Note saved.");
       navigate("/home");
     } catch (error) {
-      setCreateMessage(getErrorMessage(error, "Failed to create snippet."));
+      setCreateMessage(getApiErrorMessage(error, "Failed to create snippet."));
     } finally {
       setSaveLoading(false);
     }
@@ -145,7 +136,6 @@ function AppShell() {
       setAuthLoading(true);
       setAuthMessage("");
 
-      const endpoint = authMode === "signup" ? "/signup" : "/login";
       const payload =
         authMode === "signup"
           ? {
@@ -158,10 +148,7 @@ function AppShell() {
               password: authPassword,
             };
 
-      const data = await requestJson(endpoint, {
-        method: "POST",
-        body: payload,
-      });
+      const data = authMode === "signup" ? await signUp(payload) : await signIn(payload);
 
       setToken(data.token);
       setUser(data.user);
@@ -171,7 +158,7 @@ function AppShell() {
       setAuthMessage(`Welcome ${data.user?.name || "back"}.`);
       navigate("/create");
     } catch (error) {
-      setAuthMessage(getErrorMessage(error, "Authentication failed."));
+      setAuthMessage(getApiErrorMessage(error, "Authentication failed."));
     } finally {
       setAuthLoading(false);
     }
@@ -201,10 +188,10 @@ function AppShell() {
     }
 
     try {
-      await requestJson(`/snippets/${id}`, { method: "DELETE", token });
+      await deleteSnippetById(id, token);
       setSnippets((prev) => prev.filter((snippet) => snippet._id !== id));
     } catch (error) {
-      window.alert(getErrorMessage(error, "Failed to delete snippet."));
+      window.alert(getApiErrorMessage(error, "Failed to delete snippet."));
     }
   };
 

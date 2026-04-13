@@ -1,76 +1,82 @@
-const RAW_BASE_URL = import.meta.env.VITE_API_BASE_URL || "http://localhost:5000";
+import axios from "axios";
 
-export const BASE_URL = RAW_BASE_URL.replace(/\/+$/, "");
+function ensureApiBaseUrl(input) {
+  const trimmed = (input || "/api").replace(/\/+$/, "");
 
-function buildUrl(path) {
-  const normalizedPath = path.startsWith("/") ? path : `/${path}`;
-  return `${BASE_URL}${normalizedPath}`;
+  // Accept /api directly for Vite proxy usage.
+  if (trimmed === "/api") {
+    return trimmed;
+  }
+
+  if (trimmed.endsWith("/api")) {
+    return trimmed;
+  }
+
+  return `${trimmed}/api`;
 }
 
-async function parseResponse(response) {
-  const contentType = response.headers.get("content-type") || "";
-  const rawBody = await response.text();
+const RAW_BASE_URL = import.meta.env.VITE_API_BASE_URL || "https://snippet-vault-backend.onrender.com";
+export const BASE_URL = ensureApiBaseUrl(RAW_BASE_URL);
 
-  let data = null;
-  if (rawBody) {
-    if (contentType.includes("application/json")) {
-      try {
-        data = JSON.parse(rawBody);
-      } catch (error) {
-        throw new Error("Server returned malformed JSON.");
-      }
-    } else {
-      try {
-        data = JSON.parse(rawBody);
-      } catch (error) {
-        data = null;
-      }
-    }
-  }
-
-  if (!response.ok) {
-    const messageFromJson = data && typeof data === "object" ? data.message : "";
-    const htmlResponse = contentType.includes("text/html") || rawBody.trim().startsWith("<!DOCTYPE");
-    const fallbackMessage = htmlResponse
-      ? "Server returned HTML instead of JSON. Verify local backend URL and ensure backend is running on http://localhost:5000."
-      : `Request failed with status ${response.status}.`;
-
-    const error = new Error(messageFromJson || fallbackMessage);
-    error.status = response.status;
-    error.body = rawBody;
-    throw error;
-  }
-
-  if (!rawBody) {
-    return null;
-  }
-
-  if (data !== null) {
-    return data;
-  }
-
-  throw new Error("Server returned a non-JSON response.");
-}
-
-export async function requestJson(path, options = {}) {
-  const { method = "GET", body, token } = options;
-  const headers = {
+const api = axios.create({
+  baseURL: BASE_URL,
+  headers: {
     Accept: "application/json",
-  };
+  },
+});
 
-  if (body !== undefined) {
-    headers["Content-Type"] = "application/json";
-  }
+function authHeaders(token) {
+  return token ? { Authorization: `Bearer ${token}` } : {};
+}
 
-  if (token) {
-    headers.Authorization = `Bearer ${token}`;
-  }
+export async function fetchSnippets() {
+  const response = await api.get("/snippets");
+  return response.data;
+}
 
-  const response = await fetch(buildUrl(path), {
-    method,
-    headers,
-    body: body !== undefined ? JSON.stringify(body) : undefined,
+export async function createSnippet(payload, token) {
+  const response = await api.post("/snippets", payload, {
+    headers: authHeaders(token),
   });
 
-  return parseResponse(response);
+  return response.data;
+}
+
+export async function deleteSnippetById(id, token) {
+  const response = await api.delete(`/snippets/${id}`, {
+    headers: authHeaders(token),
+  });
+
+  return response.data;
+}
+
+export async function signUp(payload) {
+  const response = await api.post("/auth/signup", payload);
+  return response.data;
+}
+
+export async function signIn(payload) {
+  const response = await api.post("/auth/login", payload);
+  return response.data;
+}
+
+export function getApiErrorMessage(error, fallbackMessage) {
+  if (axios.isAxiosError(error)) {
+    if (!error.response) {
+      return `Cannot reach backend API at ${BASE_URL}. Start local server and retry.`;
+    }
+
+    const message = error.response.data?.message;
+    if (typeof message === "string" && message.trim()) {
+      return message;
+    }
+
+    return fallbackMessage;
+  }
+
+  if (error instanceof Error && error.message) {
+    return error.message;
+  }
+
+  return fallbackMessage;
 }
